@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미니게임 천국</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .menu-btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .menu-btn:hover {
+            background-color: #0056b3;
+        }
+        .screen {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        
+        /* 룰렛 스타일 */
+        .roulette-number {
+            font-size: 48px;
+            font-weight: bold;
+            width: 120px;
+            height: 120px;
+            line-height: 120px;
+            margin: 20px auto;
+            border-radius: 50%;
+            color: white;
+            background-color: #ccc;
+        }
+        .even {
+            background-color: black;
+        }
+        .odd {
+            background-color: red;
+        }
+        .back-btn {
+            margin-top: 20px;
+            padding: 8px 16px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 메인 메뉴 화면 -->
+    <div id="main-menu" class="screen active">
+        <h1>🎮 미니게임 모음</h1>
+        <p>플레이할 게임을 선택하세요.</p>
+        <button class="menu-btn" onclick="showScreen('roulette-game')">홀짝 룰렛 게임</button>
+        <button class="menu-btn" onclick="showScreen('number-game')">숫자 맞추기 게임</button>
+    </div>
+
+    <!-- 게임 1: 룰렛 게임 -->
+    <div id="roulette-game" class="screen">
+        <h2>🎯 홀짝 룰렛 게임</h2>
+        <p>짝수는 검은색, 홀수는 빨간색입니다!</p>
+        
+        <div id="roulette-display" class="roulette-number">?</div>
+        
+        <button class="menu-btn" onclick="spinRoulette()">룰렛 돌리기</button>
+        <p id="roulette-result"></p>
+        
+        <button class="back-btn" onclick="showScreen('main-menu')">메인 메뉴로 돌아가기</button>
+    </div>
+
+    <!-- 게임 2: 숫자 맞추기 게임 -->
+    <div id="number-game" class="screen">
+        <h2>🔢 숫자 맞추기 게임</h2>
+        <p>1부터 10 사이의 숫자를 맞춰보세요!</p>
+        <input type="number" id="guess-input" min="1" max="10">
+        <button class="menu-btn" onclick="checkGuess()">확인</button>
+        <p id="guess-result"></p>
+        
+        <button class="back-btn" onclick="showScreen('main-menu')">메인 메뉴로 돌아가기</button>
+    </div>
+</div>
+
+<script>
+    // 화면 전환 함수
+    function showScreen(screenId) {
+        const screens = document.querySelectorAll('.screen');
+        screens.forEach(screen => screen.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // 룰렛 게임 로직
+    let targetGuessNumber = Math.floor(Math.random() * 10) + 1;
+
+    function spinRoulette() {
+        const display = document.getElementById('roulette-display');
+        const resultText = document.getElementById('roulette-result');
+        
+        // 1부터 36까지의 무작위 숫자 생성
+        const randomNumber = Math.floor(Math.random() * 36) + 1;
+        
+        display.textContent = randomNumber;
+        
+        // 클래스 초기화
+        display.className = 'roulette-number';
+        
+        // 홀/짝에 따른 색상 설정 및 결과 출력
+        if (randomNumber % 2 === 0) {
+            display.classList.add('even'); // 짝수: 검은색
+            resultText.textContent = `결과: ${randomNumber} (짝수 - 검은색)`;
+        } else {
+            display.classList.add('odd'); // 홀수: 빨간색
+            resultText.textContent = `결과: ${randomNumber} (홀수 - 빨간색)`;
+        }
+    }
+
+    // 숫자 맞추기 게임 로직
+    function checkGuess() {
+        const userGuess = parseInt(document.getElementById('guess-input').value);
+        const resultText = document.getElementById('guess-result');
+
+        if (isNaN(userGuess)) {
+            resultText.textContent = "숫자를 입력해주세요.";
+            return;
+        }
+
+        if (userGuess === targetGuessNumber) {
+            resultText.textContent = "정답입니다! 🎉 새로운 숫자가 설정되었습니다.";
+            targetGuessNumber = Math.floor(Math.random() * 10) + 1; // 새로운 숫자 생성
+        } else if (userGuess < targetGuessNumber) {
+            resultText.textContent = "UP! 더 큰 숫자입니다.";
+        } else {
+            resultText.textContent = "DOWN! 더 작은 숫자입니다.";
+        }
+    }
+</script>
+
+</body>
+</html>
