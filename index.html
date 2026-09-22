@@ -3,162 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>미니게임 천국</title>
+    <title>미니게임 천국 - 룰렛 게임</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             text-align: center;
             background-color: #f4f4f9;
             margin: 0;
             padding: 20px;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+        h1 {
+            color: #333;
         }
-        .menu-btn {
+
+        .instruction {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 400px;
+            margin: 0 auto 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .key-badge {
             display: inline-block;
-            margin: 10px;
-            padding: 12px 24px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        .menu-btn:hover {
-            background-color: #0056b3;
-        }
-        .screen {
-            display: none;
-        }
-        .active {
-            display: block;
-        }
-        
-        /* 룰렛 스타일 */
-        .roulette-number {
-            font-size: 48px;
+            background: #e0e0e0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 2px 6px;
             font-weight: bold;
-            width: 120px;
-            height: 120px;
-            line-height: 120px;
-            margin: 20px auto;
+        }
+
+        .mode-status {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2196F3;
+            margin-top: 10px;
+        }
+
+        .roulette-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto;
+        }
+
+        /* 당첨 화살표 */
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #ff4757;
+            z-index: 10;
+        }
+
+        canvas {
             border-radius: 50%;
-            color: white;
-            background-color: #ccc;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 4s cubic-bezier(0.15, 0.99, 0.18, 1);
         }
-        .even {
-            background-color: black;
-        }
-        .odd {
-            background-color: red;
-        }
-        .back-btn {
-            margin-top: 20px;
-            padding: 8px 16px;
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+
+        #result {
+            margin-top: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2ed573;
+            height: 30px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- 메인 메뉴 화면 -->
-    <div id="main-menu" class="screen active">
-        <h1>🎮 미니게임 모음</h1>
-        <p>플레이할 게임을 선택하세요.</p>
-        <button class="menu-btn" onclick="showScreen('roulette-game')">홀짝 룰렛 게임</button>
-        <button class="menu-btn" onclick="showScreen('number-game')">숫자 맞추기 게임</button>
+    <h1>🎯 룰렛 게임</h1>
+
+    <div class="instruction">
+        <p><strong>[ 조작 방법 ]</strong></p>
+        <p><span class="key-badge">1</span> 키: 홀수 모드 선택</p>
+        <p><span class="key-badge">2</span> 키: 짝수 모드 선택</p>
+        <p><span class="key-badge">Spacebar</span> : 룰렛 돌리기</p>
+        <div id="modeStatus" class="mode-status">현재 모드: 랜덤 (기본)</div>
     </div>
 
-    <!-- 게임 1: 룰렛 게임 -->
-    <div id="roulette-game" class="screen">
-        <h2>🎯 홀짝 룰렛 게임</h2>
-        <p>짝수는 검은색, 홀수는 빨간색입니다!</p>
-        
-        <div id="roulette-display" class="roulette-number">?</div>
-        
-        <button class="menu-btn" onclick="spinRoulette()">룰렛 돌리기</button>
-        <p id="roulette-result"></p>
-        
-        <button class="back-btn" onclick="showScreen('main-menu')">메인 메뉴로 돌아가기</button>
+    <div class="roulette-container">
+        <div class="pointer"></div>
+        <canvas id="rouletteCanvas" width="300" height="300"></canvas>
     </div>
 
-    <!-- 게임 2: 숫자 맞추기 게임 -->
-    <div id="number-game" class="screen">
-        <h2>🔢 숫자 맞추기 게임</h2>
-        <p>1부터 10 사이의 숫자를 맞춰보세요!</p>
-        <input type="number" id="guess-input" min="1" max="10">
-        <button class="menu-btn" onclick="checkGuess()">확인</button>
-        <p id="guess-result"></p>
-        
-        <button class="back-btn" onclick="showScreen('main-menu')">메인 메뉴로 돌아가기</button>
-    </div>
-</div>
+    <div id="result"></div>
 
-<script>
-    // 화면 전환 함수
-    function showScreen(screenId) {
-        const screens = document.querySelectorAll('.screen');
-        screens.forEach(screen => screen.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-    }
+    <script>
+        const canvas = document.getElementById('rouletteCanvas');
+        const ctx = canvas.getContext('2d');
+        const modeStatus = document.getElementById('modeStatus');
+        const resultDiv = document.getElementById('result');
 
-    // 룰렛 게임 로직
-    let targetGuessNumber = Math.floor(Math.random() * 10) + 1;
+        // 룰렛 조각 데이터 (1부터 8까지)
+        const numbers = [1, 2, 3, 4, 5, 6, 7, 8];
+        const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#1dd1a1', '#f368e0', '#ff9ff3', '#54a0ff', '#5f27cd'];
+        const numSegments = numbers.length;
+        const segmentAngle = 360 / numSegments; // 조각당 각도 (45도)
 
-    function spinRoulette() {
-        const display = document.getElementById('roulette-display');
-        const resultText = document.getElementById('roulette-result');
-        
-        // 1부터 36까지의 무작위 숫자 생성
-        const randomNumber = Math.floor(Math.random() * 36) + 1;
-        
-        display.textContent = randomNumber;
-        
-        // 클래스 초기화
-        display.className = 'roulette-number';
-        
-        // 홀/짝에 따른 색상 설정 및 결과 출력
-        if (randomNumber % 2 === 0) {
-            display.classList.add('even'); // 짝수: 검은색
-            resultText.textContent = `결과: ${randomNumber} (짝수 - 검은색)`;
-        } else {
-            display.classList.add('odd'); // 홀수: 빨간색
-            resultText.textContent = `결과: ${randomNumber} (홀수 - 빨간색)`;
-        }
-    }
+        let selectedMode = 'ALL'; // 'ALL', 'ODD', 'EVEN'
+        let isSpinning = false;
+        let currentRotation = 0;
 
-    // 숫자 맞추기 게임 로직
-    function checkGuess() {
-        const userGuess = parseInt(document.getElementById('guess-input').value);
-        const resultText = document.getElementById('guess-result');
+        // 룰렛 그리기
+        function drawWheel() {
+            const radius = canvas.width / 2;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (isNaN(userGuess)) {
-            resultText.textContent = "숫자를 입력해주세요.";
-            return;
+            for (let i = 0; i < numSegments; i++) {
+                const startAngle = (i * segmentAngle - 90) * Math.PI / 180;
+                const endAngle = ((i + 1) * segmentAngle - 90) * Math.PI / 180;
+
+                // 부채꼴 그리기
+                ctx.beginPath();
+                ctx.moveTo(radius, radius);
+                ctx.arc(radius, radius, radius, startAngle, endAngle);
+                ctx.fillStyle = colors[i];
+                ctx.fill();
+                ctx.stroke();
+
+                // 숫자 텍스트 그리기
+                ctx.save();
+                ctx.translate(radius, radius);
+                ctx.rotate(startAngle + (segmentAngle * Math.PI / 360));
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 20px Arial";
+                ctx.fillText(numbers[i], radius - 20, 7);
+                ctx.restore();
+            }
         }
 
-        if (userGuess === targetGuessNumber) {
-            resultText.textContent = "정답입니다! 🎉 새로운 숫자가 설정되었습니다.";
-            targetGuessNumber = Math.floor(Math.random() * 10) + 1; // 새로운 숫자 생성
-        } else if (userGuess < targetGuessNumber) {
-            resultText.textContent = "UP! 더 큰 숫자입니다.";
-        } else {
-            resultText.textContent = "DOWN! 더 작은 숫자입니다.";
-        }
-    }
-</script>
+        // 키보드 이벤트 처리
+        window.addEventListener('keydown', (e) => {
+            if (isSpinning) return; // 돌고 있을 때는 키 입력 무시
 
+            if (e.key === '1') {
+                selectedMode = 'ODD';
+                modeStatus.innerText = "현재 모드: [1번] 홀수 전용";
+                modeStatus.style.color = "#ff4757";
+            } else if (e.key === '2') {
+                selectedMode = 'EVEN';
+                modeStatus.innerText = "현재 모드: [2번] 짝수 전용";
+                modeStatus.style.color = "#2ed573";
+            } else if (e.code === 'Space') {
+                e.preventDefault(); // 스페이스바 페이지 스크롤 방지
+                spinWheel();
+            }
+        });
+
+        // 룰렛 돌리기 함수
+        function spinWheel() {
+            isSpinning = true;
+            resultDiv.innerText = "룰렛이 도는 중...";
+
+            // 조건에 맞는 숫자를 필터링
+            let targetNumbers = numbers;
+            if (selectedMode === 'ODD') {
+                targetNumbers = numbers.filter(n => n % 2 !== 0); // [1, 3, 5, 7]
+            } else if (selectedMode === 'EVEN') {
+                targetNumbers = numbers.filter(n => n % 2 === 0); // [2, 4, 6, 8]
+            }
+
+            // 필터링된 숫자 중 무작위 1개 선택
+            const winningNumber = targetNumbers[Math.floor(Math.random() * targetNumbers.length)];
+            const targetIndex = numbers.indexOf(winningNumber);
+
+            // 해당 숫자가 상단 화살표(12시 방향)에 멈추도록 각도 계산
+            const targetSegmentAngle = targetIndex * segmentAngle;
+            
+            // 바퀴를 최소 5바퀴(1800도) 이상 회전시킨 후 정확한 위치에 정지하도록 설정
+            const extraRounds = 360 * 5; 
+            const targetAngle = extraRounds + (360 - targetSegmentAngle) - (segmentAngle / 2);
+
+            // 이전 회전 각도 누적
+            currentRotation += targetAngle - (currentRotation % 360);
+            
+            // CSS transition을 이용해 애니메이션 실행
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+            // 4초 후 정지 및 결과 출력
+            setTimeout(() => {
+                isSpinning = false;
+                resultDiv.innerText = `🎉 당첨 결과: ${winningNumber} (${winningNumber % 2 === 0 ? '짝수' : '홀수'}) 🎉`;
+            }, 4000);
+        }
+
+        // 초기 화면 그리기
+        drawWheel();
+    </script>
 </body>
 </html>
