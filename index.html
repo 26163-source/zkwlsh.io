@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>미니게임 천국 - 룰렛 게임</title>
+    <title>36칸 룰렛 게임</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -15,13 +15,14 @@
 
         h1 {
             color: #333;
+            margin-bottom: 10px;
         }
 
         .instruction {
             background-color: #fff;
             border-radius: 8px;
-            padding: 15px;
-            max-width: 400px;
+            padding: 10px 20px;
+            max-width: 300px;
             margin: 0 auto 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
@@ -31,25 +32,18 @@
             background: #e0e0e0;
             border: 1px solid #ccc;
             border-radius: 4px;
-            padding: 2px 6px;
+            padding: 2px 8px;
             font-weight: bold;
-        }
-
-        .mode-status {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #2196F3;
-            margin-top: 10px;
         }
 
         .roulette-container {
             position: relative;
-            width: 320px;
-            height: 320px;
+            width: 360px;
+            height: 360px;
             margin: 0 auto;
         }
 
-        /* 당첨 화살표 */
+        /* 상단 당첨 화살표 */
         .pointer {
             position: absolute;
             top: -15px;
@@ -59,13 +53,13 @@
             height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
-            border-top: 25px solid #ff4757;
+            border-top: 25px solid #ffcc00;
             z-index: 10;
         }
 
         canvas {
             border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             transition: transform 4s cubic-bezier(0.15, 0.99, 0.18, 1);
         }
 
@@ -73,8 +67,8 @@
             margin-top: 25px;
             font-size: 1.5rem;
             font-weight: bold;
-            color: #2ed573;
-            height: 30px;
+            color: #333;
+            height: 35px;
         }
     </style>
 </head>
@@ -83,16 +77,12 @@
     <h1>🎯 룰렛 게임</h1>
 
     <div class="instruction">
-        <p><strong>[ 조작 방법 ]</strong></p>
-        <p><span class="key-badge">1</span> 키: 홀수 모드 선택</p>
-        <p><span class="key-badge">2</span> 키: 짝수 모드 선택</p>
-        <p><span class="key-badge">Spacebar</span> : 룰렛 돌리기</p>
-        <div id="modeStatus" class="mode-status">현재 모드: 랜덤 (기본)</div>
+        <p><span class="key-badge">Spacebar</span> 키를 눌러 룰렛을 돌리세요!</p>
     </div>
 
     <div class="roulette-container">
         <div class="pointer"></div>
-        <canvas id="rouletteCanvas" width="300" height="300"></canvas>
+        <canvas id="rouletteCanvas" width="360" height="360"></canvas>
     </div>
 
     <div id="result"></div>
@@ -100,16 +90,13 @@
     <script>
         const canvas = document.getElementById('rouletteCanvas');
         const ctx = canvas.getContext('2d');
-        const modeStatus = document.getElementById('modeStatus');
         const resultDiv = document.getElementById('result');
 
-        // 룰렛 조각 데이터 (1부터 8까지)
-        const numbers = [1, 2, 3, 4, 5, 6, 7, 8];
-        const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#1dd1a1', '#f368e0', '#ff9ff3', '#54a0ff', '#5f27cd'];
+        // 1부터 36까지 숫자 생성
+        const numbers = Array.from({ length: 36 }, (_, i) => i + 1);
         const numSegments = numbers.length;
-        const segmentAngle = 360 / numSegments; // 조각당 각도 (45도)
+        const segmentAngle = 360 / numSegments; // 10도씩 36칸
 
-        let selectedMode = 'ALL'; // 'ALL', 'ODD', 'EVEN'
         let isSpinning = false;
         let currentRotation = 0;
 
@@ -119,85 +106,71 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             for (let i = 0; i < numSegments; i++) {
+                const num = numbers[i];
                 const startAngle = (i * segmentAngle - 90) * Math.PI / 180;
                 const endAngle = ((i + 1) * segmentAngle - 90) * Math.PI / 180;
 
-                // 부채꼴 그리기
+                // 홀수는 붉은색(#e74c3c), 짝수는 검은색(#2c3e50)
+                const color = (num % 2 !== 0) ? '#e74c3c' : '#2c3e50';
+
+                // 부채꼴 조각 그리기
                 ctx.beginPath();
                 ctx.moveTo(radius, radius);
                 ctx.arc(radius, radius, radius, startAngle, endAngle);
-                ctx.fillStyle = colors[i];
+                ctx.fillStyle = color;
                 ctx.fill();
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 1;
                 ctx.stroke();
 
-                // 숫자 텍스트 그리기
+                // 숫자 텍스트 입력
                 ctx.save();
                 ctx.translate(radius, radius);
                 ctx.rotate(startAngle + (segmentAngle * Math.PI / 360));
                 ctx.textAlign = "right";
-                ctx.fillStyle = "#fff";
-                ctx.font = "bold 20px Arial";
-                ctx.fillText(numbers[i], radius - 20, 7);
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 11px Arial";
+                ctx.fillText(num, radius - 10, 4);
                 ctx.restore();
             }
         }
 
-        // 키보드 이벤트 처리
+        // 스페이스바 키 입력 감지
         window.addEventListener('keydown', (e) => {
-            if (isSpinning) return; // 돌고 있을 때는 키 입력 무시
-
-            if (e.key === '1') {
-                selectedMode = 'ODD';
-                modeStatus.innerText = "현재 모드: [1번] 홀수 전용";
-                modeStatus.style.color = "#ff4757";
-            } else if (e.key === '2') {
-                selectedMode = 'EVEN';
-                modeStatus.innerText = "현재 모드: [2번] 짝수 전용";
-                modeStatus.style.color = "#2ed573";
-            } else if (e.code === 'Space') {
-                e.preventDefault(); // 스페이스바 페이지 스크롤 방지
-                spinWheel();
+            if (e.code === 'Space') {
+                e.preventDefault(); // 스페이스바 화면 스크롤 방지
+                if (!isSpinning) {
+                    spinWheel();
+                }
             }
         });
 
-        // 룰렛 돌리기 함수
+        // 룰렛 회전 및 무작위 추첨 함수
         function spinWheel() {
             isSpinning = true;
-            resultDiv.innerText = "룰렛이 도는 중...";
+            resultDiv.innerText = "룰렛이 돌고 있습니다...";
 
-            // 조건에 맞는 숫자를 필터링
-            let targetNumbers = numbers;
-            if (selectedMode === 'ODD') {
-                targetNumbers = numbers.filter(n => n % 2 !== 0); // [1, 3, 5, 7]
-            } else if (selectedMode === 'EVEN') {
-                targetNumbers = numbers.filter(n => n % 2 === 0); // [2, 4, 6, 8]
-            }
-
-            // 필터링된 숫자 중 무작위 1개 선택
-            const winningNumber = targetNumbers[Math.floor(Math.random() * targetNumbers.length)];
+            // 1 ~ 36 사이 무작위 숫자 선택
+            const winningNumber = Math.floor(Math.random() * 36) + 1;
             const targetIndex = numbers.indexOf(winningNumber);
 
-            // 해당 숫자가 상단 화살표(12시 방향)에 멈추도록 각도 계산
+            // 해당 숫자가 12시 방향 화살표 위치로 오도록 각도 계산
             const targetSegmentAngle = targetIndex * segmentAngle;
-            
-            // 바퀴를 최소 5바퀴(1800도) 이상 회전시킨 후 정확한 위치에 정지하도록 설정
-            const extraRounds = 360 * 5; 
+            const extraRounds = 360 * 5; // 최소 5바퀴 회전
             const targetAngle = extraRounds + (360 - targetSegmentAngle) - (segmentAngle / 2);
 
-            // 이전 회전 각도 누적
             currentRotation += targetAngle - (currentRotation % 360);
-            
-            // CSS transition을 이용해 애니메이션 실행
             canvas.style.transform = `rotate(${currentRotation}deg)`;
 
-            // 4초 후 정지 및 결과 출력
+            // 4초 후 회전이 끝나면 결과 출력
             setTimeout(() => {
                 isSpinning = false;
-                resultDiv.innerText = `🎉 당첨 결과: ${winningNumber} (${winningNumber % 2 === 0 ? '짝수' : '홀수'}) 🎉`;
+                const colorName = (winningNumber % 2 !== 0) ? "붉은색(홀수)" : "검은색(짝수)";
+                resultDiv.innerText = `🎉 당첨 결과: ${winningNumber}번 [${colorName}] 🎉`;
             }, 4000);
         }
 
-        // 초기 화면 그리기
+        // 초기 룰렛 화면 출력
         drawWheel();
     </script>
 </body>
